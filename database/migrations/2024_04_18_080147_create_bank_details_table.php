@@ -19,7 +19,8 @@ class CreateBankDetailsTable extends Migration
             $table->string('accountName', 50);
             $table->string('accountNumber', 15)->unique()->nullable();
             $table->string('currency')->default('NGN');
-            $table->string('bankCode');
+            $table->string('bankCode')->nullable();
+            $table->string('statement')->nullable();
             $table->string('bankName', 50);
             $table->string('BVN', 11)->unique()->nullable();
 

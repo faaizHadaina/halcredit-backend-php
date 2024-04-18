@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-
+use Illuminate\Support\Facades\URL;
 class BankDetail extends Model
 {
     use HasFactory;
@@ -32,6 +32,7 @@ class BankDetail extends Model
             'currency'      => $this->currency,
             'bankName'      => $this->bankName,
             'bankCode'      => $this->bankCode,
+            'statement' => ($this->statement != null) ? URL::asset('/storage/' . $this->statement) : null,
             'BVN'           => $this->BVN
         ];
     }

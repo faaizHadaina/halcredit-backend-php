@@ -9,6 +9,8 @@ use App\Repositories\Interfaces\BankDetailsRepositoryInterface;
 use App\Helpers\PaystackService;
 use Illuminate\Support\Facades\Log;
 use App\Models\BankDetail;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Validation\ValidationException;
 
@@ -185,4 +187,35 @@ class BankController extends MyController
         return $this->paystackService->fetchAllBanks();
     }
 
+    public function uploadStatement(Request $request)
+    {
+        if (!Auth::check()) {
+            return response()->json(['status' => 'error', 'message' => 'Authentication required.'], 401);
+        }
+
+        $request->validate([
+            'statement' => 'required|file',
+        ]);
+
+        try {
+            if ($request->hasFile('statement')) {
+                $file = $request->file('statement');
+                $name = time() . '_' . $file->getClientOriginalName();
+                $filepath = 'statement/' . $name;
+                Storage::disk('public')->put($filepath, file_get_contents($file));
+
+                $fullUrl = Storage::disk('public')->url($filepath);
+
+                $bankDetail = Auth::user()->bankDetail;
+                $bankDetail->statement = $fullUrl;
+                $bankDetail->save();
+
+                return response()->json(['statement_url' => $fullUrl, 'message' => 'Bank Statement successfully updated', 'status' => 'success'], 200);
+            }
+        } catch (\Exception $e) {
+            Log::error('Bank Statement error: ' . $e->getMessage());
+            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
+        }
+        return response()->json(['status' => 'error', 'message' => 'No statement file provided'], 400);
+    }
 }
